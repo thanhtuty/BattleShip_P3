@@ -59,6 +59,7 @@ public final class Client extends JFrame {
     private DataInputStream in;
     private DataOutputStream out;
     private int player = -1;
+    private String username = "";
     private String mode = "SETUP";
     private int active = -1;
     private String ownState = "0".repeat(36);
@@ -367,6 +368,7 @@ public final class Client extends JFrame {
             case "AUTH_OK" -> {
                 player = Integer.parseInt(x[1]);
                 inviteButton.setEnabled(false);
+                username = x[2];
                 status.setText("Đã đăng nhập: " + x[2]);
                 log.append("Đã đăng nhập với tài khoản " + x[2] + ".\n");
             }
@@ -392,7 +394,8 @@ public final class Client extends JFrame {
                 opponentConnected = true;
                 inviteButton.setEnabled(false);
                 statusDot.setForeground(TEAL);
-                alert("Lời mời được chấp nhận. Trận với " + (x.length > 2 ? x[2] : x[1])
+                String opponentName = username.equals(x[1]) ? x[2] : x[1];
+                alert("Lời mời được chấp nhận. Trận với " + opponentName
                         + " đã tạo. Hai người hãy đặt tàu và nhấn SẴN SÀNG.");
             }
             case "INFO" -> {
@@ -449,11 +452,11 @@ public final class Client extends JFrame {
             case '3' -> "×";
             default -> "";
         });
-        cell.setForeground(value == '3' ? RED : value == '2' ? MUTED : TEXT);
+        cell.setForeground(value == '1' || value == '3' ? Color.WHITE : TEXT);
         cell.setBackground(switch (value) {
             case '1' -> SHIP;
             case '2' -> MISS;
-            case '3' -> new Color(75, 39, 51);
+            case '3' -> RED;
             default -> WATER;
         });
         cell.setBorder(BorderFactory.createLineBorder(
