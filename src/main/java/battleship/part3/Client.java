@@ -383,10 +383,7 @@ public final class Client extends JFrame {
                         + "   ·   " + x[3] + " giây");
                 statusDot.setForeground(active == player ? TEAL : MUTED);
             }
-            case "ATTACK_RESULT" -> {
-                if (x[2].equals("MISS"))
-                    log.append(x[1] + " bắn trượt; lượt chuyển cho " + x[5] + ".\n");
-            }
+            case "ATTACK_RESULT" -> { /* Kết quả thể hiện trên bàn cờ, không hiện thông báo trúng/trượt. */ }
             case "SUNK" -> alert(x[1] + " đã đánh chìm một tàu của " + x[2] + "!");
             case "WIN" -> alert("Người chiến thắng: " + x[1] + ". "
                     + x[2] + " đã hết tàu.");
