@@ -94,8 +94,8 @@ public final class Client extends JFrame {
 
         JPanel brand = new JPanel(new BorderLayout(0, 4));
         brand.setOpaque(false);
-        JLabel title = label("BATTLESHIP", 25, TEAL, Font.BOLD);
-        JLabel subtitle = label("NAVAL ARENA   /   TRẬN ĐẤU 6 × 6", 11, MUTED, Font.BOLD);
+        JLabel title = label("BATTLESHIP", 30, TEAL, Font.BOLD);
+        JLabel subtitle = label("NAVAL ARENA   /   TRẬN ĐẤU 6 × 6", 14, MUTED, Font.BOLD);
         brand.add(title, BorderLayout.NORTH);
         brand.add(subtitle, BorderLayout.SOUTH);
         header.add(brand, BorderLayout.WEST);
@@ -108,7 +108,7 @@ public final class Client extends JFrame {
         statusDot.setForeground(TEAL);
         statusDot.setFont(new Font("SansSerif", Font.BOLD, 12));
         status.setForeground(TEXT);
-        status.setFont(new Font("SansSerif", Font.BOLD, 13));
+        status.setFont(new Font("SansSerif", Font.BOLD, 15));
         statusCard.add(statusDot, BorderLayout.WEST);
         statusCard.add(status, BorderLayout.CENTER);
         right.add(statusCard, BorderLayout.CENTER);
@@ -232,10 +232,10 @@ public final class Client extends JFrame {
         log.setLineWrap(true);
         log.setWrapStyleWord(true);
         log.setRows(3);
-        log.setForeground(new Color(190, 210, 224));
+        log.setForeground(TEXT);
         log.setBackground(PANEL);
         log.setCaretColor(TEAL);
-        log.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        log.setFont(new Font("SansSerif", Font.BOLD, 14));
         JScrollPane scroll = new JScrollPane(log);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(PANEL);
@@ -477,7 +477,7 @@ public final class Client extends JFrame {
     }
 
     private JLabel axisLabel(String text) {
-        JLabel label = label(text, 11, MUTED, Font.BOLD);
+        JLabel label = label(text, 14, MUTED, Font.BOLD);
         label.setHorizontalAlignment(SwingConstants.CENTER);
         return label;
     }
@@ -498,7 +498,7 @@ public final class Client extends JFrame {
         button.setForeground(foreground);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(11, 15, 11, 15));
-        button.setFont(new Font("SansSerif", Font.BOLD, 11));
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return button;
     }
