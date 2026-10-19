@@ -18,6 +18,8 @@ public final class Server {
     private long matchId;
     private boolean playing;
     private boolean finished;
+    private Player pendingInviteFrom;
+    private long inviteDeadline;
 
     private Server(GameDAO dao, AccountDAO accounts) { this.dao = dao; this.accounts = accounts; }
 
@@ -48,7 +50,7 @@ public final class Server {
                 try {
                     Thread.sleep(1000);
                     synchronized (this) {
-                        if (playing && !finished && turn.expired()) {
+                        if (pendingInviteFrom != null && System.currentTimeMillis() >= inviteDeadline) {\n                            Player inviter = pendingInviteFrom;\n                            Player invited = players[1 - inviter.id];\n                            pendingInviteFrom = null;\n                            if (inviter != null) inviter.send("INVITE_EXPIRED|Lời mời đã hết hạn.");\n                            if (invited != null) invited.send("INVITE_EXPIRED|Lời mời đã hết hạn.");\n                        }\n                        if (playing && !finished && turn.expired()) {
                             int previous = turn.current();
                             turn.miss();
                             try {
@@ -105,14 +107,41 @@ public final class Server {
                 player.send("AUTH_OK|" + player.id + "|" + player.name);
                 if (players[0] != null && players[1] != null
                         && players[0].authenticated && players[1].authenticated && matchId == 0) {
-                    matchId = dao.create(players[0].name, players[1].name);
-                    dao.event(matchId, players[0].name, "CONNECT", "Vào phòng");
-                    dao.event(matchId, players[1].name, "CONNECT", "Vào phòng");
-                    broadcast("INFO|Hai người chơi đã đăng nhập. Hãy đặt tàu.");
-                    state();
+                    broadcast("LOBBY|Cả hai người chơi đã vào sảnh. Hãy gửi lời mời để bắt đầu trận.");
                 } else {
                     player.send("WAIT|Đăng nhập thành công. Đang chờ người chơi còn lại.");
                 }
+            }
+            case "INVITE" -> {
+                if (!player.authenticated) throw new IllegalStateException("Hãy đăng nhập trước.");
+                if (players[0] == null || players[1] == null
+                        || !players[0].authenticated || !players[1].authenticated)
+                    throw new IllegalStateException("Đang chờ người chơi còn lại đăng nhập.");
+                if (matchId != 0 || playing) throw new IllegalStateException("Hai người đã ở trong trận.");
+                if (pendingInviteFrom != null) throw new IllegalStateException("Đang có lời mời chờ phản hồi.");
+                Player target = players[1 - player.id];
+                pendingInviteFrom = player;
+                inviteDeadline = System.currentTimeMillis() + 30_000;
+                player.send("INVITE_SENT|Đã gửi lời mời đến " + target.name + ". Chờ phản hồi tối đa 30 giây.");
+                target.send("INVITE_IN|" + player.name);
+            }
+            case "ANSWER" -> {
+                if (pendingInviteFrom == null || player == pendingInviteFrom
+                        || !player.authenticated || fields.length < 2
+                        || !pendingInviteFrom.name.equals(fields[1]))
+                    throw new IllegalStateException("Lời mời không còn hiệu lực.");
+                Player inviter = pendingInviteFrom;
+                pendingInviteFrom = null;
+                if (fields.length < 3 || !fields[2].equals("YES")) {
+                    inviter.send("INVITE_REJECTED|" + player.name + " đã từ chối lời mời.");
+                    player.send("INFO|Bạn đã từ chối lời mời.");
+                    return;
+                }
+                matchId = dao.create(inviter.name, player.name);
+                dao.event(matchId, inviter.name, "INVITE_ACCEPTED", player.name + " chấp nhận lời mời");
+                dao.event(matchId, player.name, "INVITE_ACCEPTED", "Chấp nhận lời mời của " + inviter.name);
+                broadcast("MATCH|" + inviter.name + "|" + player.name);
+                state();
             }
             case "PLACE" -> {
                 if (matchId == 0) throw new IllegalStateException("Đang chờ đối thủ kết nối");
@@ -198,7 +227,16 @@ public final class Server {
     }
 
     private synchronized void disconnected(Player player) {
-        if (matchId == 0 || finished) return;
+        if (pendingInviteFrom != null && (pendingInviteFrom == player || players[1 - player.id] == player)) {
+            pendingInviteFrom = null;
+            Player other = players[1 - player.id];
+            if (other != null) other.send("INFO|Đối thủ đã ngắt kết nối khỏi sảnh.");
+        }
+        if (matchId == 0 || finished) {
+            if (player.authenticated && players[1 - player.id] != null)
+                players[1 - player.id].send("INFO|Đối thủ đã ngắt kết nối khỏi sảnh.");
+            return;
+        }
         try {
             dao.event(matchId, player.name, "DISCONNECT", "Người chơi mất kết nối");
             if (playing) {
