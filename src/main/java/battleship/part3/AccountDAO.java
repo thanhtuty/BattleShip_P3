@@ -22,8 +22,8 @@ public final class AccountDAO {
     public AccountDAO(DbConfig db) { this.db = db; }
 
     public void ensureDemoAccounts() throws SQLException {
-        createIfMissing("player1", "12345678");
-        createIfMissing("player2", "12345678");
+        createIfMissing("abc1", "abc12345");
+        createIfMissing("abc2", "abc12345");
     }
 
     private void createIfMissing(String username, String password) throws SQLException {
