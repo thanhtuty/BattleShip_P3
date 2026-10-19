@@ -29,7 +29,7 @@ public final class Server {
         int port = Integer.parseInt(System.getProperty("port", "5002"));
         AccountDAO accounts = new AccountDAO(config);
         accounts.ensureDemoAccounts();
-        System.out.println("Tài khoản mô phỏng: player1 / 12345678 và player2 / 12345678");
+        System.out.println("Tài khoản mô phỏng: abc1 / abc12345 và abc2 / abc12345");
         new Server(new GameDAO(config), accounts).listen(port);
     }
 
