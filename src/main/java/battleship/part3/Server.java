@@ -11,6 +11,7 @@ import java.util.Random;
 /** Server có thẩm quyền xác nhận lượt bắn, kết quả và ghi dữ liệu xuống SQL Server. */
 public final class Server {
     private final GameDAO dao;
+    private final AccountDAO accounts;
     private final Player[] players = new Player[2];
     private final Board[] boards = new Board[2];
     private TurnManager turn;
@@ -18,7 +19,7 @@ public final class Server {
     private boolean playing;
     private boolean finished;
 
-    private Server(GameDAO dao) { this.dao = dao; }
+    private Server(GameDAO dao, AccountDAO accounts) { this.dao = dao; this.accounts = accounts; }
 
     public static void main(String[] args) throws Exception {
         DbConfig config = DbConfig.load();
@@ -26,7 +27,10 @@ public final class Server {
             System.out.println("Đã kết nối SQL Server: " + connection.getMetaData().getDatabaseProductName());
         }
         int port = Integer.parseInt(System.getProperty("port", "5002"));
-        new Server(new GameDAO(config)).listen(port);
+        AccountDAO accounts = new AccountDAO(config);
+        accounts.ensureDemoAccounts();
+        System.out.println("Tài khoản mô phỏng: player1 / 12345678 và player2 / 12345678");
+        new Server(new GameDAO(config), accounts).listen(port);
     }
 
     private void listen(int port) throws IOException {
@@ -70,16 +74,44 @@ public final class Server {
     private synchronized void message(Player player, String line) throws Exception {
         String[] fields = line.split("\\|", -1);
         switch (fields[0]) {
-            case "NAME" -> {
-                player.name = fields.length > 1 ? fields[1].trim() : "";
-                if (player.name.isBlank()) player.name = "Player" + (player.id + 1);
-                if (player.name.length() > 50) player.name = player.name.substring(0, 50);
-                if (player.id == 1) {
-                    matchId = dao.create(players[0].name, player.name);
+            case "LOGIN", "REGISTER" -> {
+                if (player.authenticated) throw new IllegalStateException("Client này đã đăng nhập.");
+                if (fields.length < 3) {
+                    player.send("AUTH_FAIL|Thiếu tên tài khoản hoặc mật khẩu.");
+                    return;
+                }
+                String username = fields[1].trim();
+                boolean accepted;
+                if (fields[0].equals("REGISTER")) {
+                    try {
+                        accepted = accounts.register(username, fields[2]);
+                    } catch (IllegalArgumentException e) {
+                        player.send("AUTH_FAIL|" + e.getMessage());
+                        return;
+                    }
+                    if (!accepted) {
+                        player.send("AUTH_FAIL|Tên tài khoản đã tồn tại.");
+                        return;
+                    }
+                } else {
+                    accepted = accounts.authenticate(username, fields[2]);
+                    if (!accepted) {
+                        player.send("AUTH_FAIL|Sai tài khoản hoặc mật khẩu.");
+                        return;
+                    }
+                }
+                player.name = username;
+                player.authenticated = true;
+                player.send("AUTH_OK|" + player.id + "|" + player.name);
+                if (players[0] != null && players[1] != null
+                        && players[0].authenticated && players[1].authenticated && matchId == 0) {
+                    matchId = dao.create(players[0].name, players[1].name);
                     dao.event(matchId, players[0].name, "CONNECT", "Vào phòng");
-                    dao.event(matchId, player.name, "CONNECT", "Vào phòng");
-                    broadcast("INFO|Hai người chơi đã kết nối. Hãy đặt tàu.");
+                    dao.event(matchId, players[1].name, "CONNECT", "Vào phòng");
+                    broadcast("INFO|Hai người chơi đã đăng nhập. Hãy đặt tàu.");
                     state();
+                } else {
+                    player.send("WAIT|Đăng nhập thành công. Đang chờ người chơi còn lại.");
                 }
             }
             case "PLACE" -> {
@@ -190,6 +222,7 @@ public final class Server {
         private final DataOutputStream output;
         private String name = "Player";
         private boolean ready;
+        private boolean authenticated;
 
         private Player(int id, Socket socket) throws IOException {
             this.id = id;
