@@ -1,13 +1,13 @@
 # BattleShip Online – Phần 3 (Java 17, NetBeans, SQL Server)
 
-Project tách riêng phần game: bàn 6×6, 4 tàu dài 2/3/4/5, đặt ngang/dọc, không chồng/vượt biên; server quản lý Ready, lượt bắn, kết quả Miss/Hit/Sunk và đồng hồ 15 giây. Bắn trúng hoặc đánh chìm được tàu thì giữ lượt; bắn trượt hoặc hết giờ thì chuyển lượt. Chỉ hiện hộp thoại khi bắt đầu trận, chìm tàu, timeout và kết quả cuối. Mỗi lần bắn, Ready, bắt đầu/kết thúc trận được ghi SQL Server.
+Project tách riêng phần game: bàn 6×6, 4 tàu dài 2/3/4/5, đặt ngang/dọc, không chồng/vượt biên; server quản lý Ready, lượt bắn, kết quả Miss/Hit/Sunk và đồng hồ 15 giây. Bắn trúng hoặc đánh chìm được tàu thì giữ lượt; bắn trượt hoặc hết giờ thì chuyển lượt. Chỉ hiện hộp thoại khi bắt đầu trận, chìm tàu, timeout và kết quả cuối. Lời mời, lượt đặt tàu, Ready, mỗi lần bắn, bắt đầu/kết thúc trận đều được ghi SQL Server và có thể xem lại qua nút **LỊCH SỬ**.
 
 > Đây là project minh họa độc lập cho phần 3. Người chơi đăng nhập hoặc tạo tài khoản; tài khoản được lưu trong bảng `UserAccounts` của SQL Server. CSDL tạo riêng `BattleShipPart3`; khi ghép project nhóm, thay tầng kết nối bằng message contract và MatchId/UserId chung của nhóm.
 
 ## Luồng mời đấu và chạy
 Sau khi hai Client đăng nhập, cả hai ở sảnh. Một người nhấn **MỜI ĐẤU**; người kia chọn đồng ý hoặc từ chối trong hộp thoại. Lời mời hết hạn sau 30 giây. Server chỉ tạo bản ghi trận và mở bước đặt tàu khi lời mời được chấp nhận. Mỗi lần chạy minh họa này nhận đúng hai Client.
 
-Giao diện dùng nền sáng, chữ đậm, màu tàu xanh đậm, ô trúng đỏ và ô trượt vàng để dễ nhìn khi chiếu trong phòng sáng.
+Giao diện dùng nền sáng, chữ đậm, màu tàu xanh đậm, ô trúng đỏ và ô trượt vàng để dễ nhìn khi chiếu trong phòng sáng. Nút **LỊCH SỬ** truy vấn SQL và hiển thị 10 trận gần nhất cùng tối đa 40 sự kiện mỗi trận.
 
 ## Cài và chạy
 1. Cài JDK 17, Maven và SQL Server; bật TCP/IP, đặt SQL Server nghe cổng 1433.
@@ -21,7 +21,7 @@ Giao diện dùng nền sáng, chữ đậm, màu tàu xanh đậm, ô trúng đ
 ## Các bảng
 - `Matches`: người chơi, trạng thái, lượt hiện tại, người thắng và mốc thời gian.
 - `PlayerBoards`: trạng thái bàn cờ, Ready, số phát bắn.
-- `GameEvents`: nhật ký READY, START, HIT, MISS, SUNK, WIN và kết nối.
+- `GameEvents`: nhật ký lời mời, đặt tàu, READY, START, HIT, MISS, SUNK, WIN và kết nối; Client có thể xem cùng lịch sử trận.
 - `UserAccounts`: tên tài khoản, salt và hash PBKDF2 của mật khẩu; mật khẩu không được lưu dạng chữ thường.
 
 ## Giao thức TCP đơn giản
