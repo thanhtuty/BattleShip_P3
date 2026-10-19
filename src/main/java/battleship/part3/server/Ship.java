@@ -1,4 +1,4 @@
-package battleship.part3;
+package battleship.part3.server;
 public final class Ship {
  private final int id, length; private int hits;
  Ship(int id,int length){this.id=id;this.length=length;}

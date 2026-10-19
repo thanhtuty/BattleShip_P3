@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-call mvn -q compile exec:java -Dexec.mainClass=battleship.part3.Client
+call mvn -q compile exec:java -Dexec.mainClass=battleship.part3.client.Client
 pause

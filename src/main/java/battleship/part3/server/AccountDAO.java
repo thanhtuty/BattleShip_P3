@@ -1,4 +1,4 @@
-package battleship.part3;
+package battleship.part3.server;
 
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;

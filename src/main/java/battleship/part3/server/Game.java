@@ -1,4 +1,4 @@
-package battleship.part3;
+package battleship.part3.server;
 /** Luật trận: trúng/sunk giữ lượt; miss đổi lượt; hết thời gian 15 giây cũng đổi lượt. */
 public final class Game {
  private final Board[] boards={new Board(),new Board()}; private TurnManager turns; private boolean started,finished;

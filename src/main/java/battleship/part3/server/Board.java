@@ -1,4 +1,4 @@
-package battleship.part3;
+package battleship.part3.server;
 import java.util.*;
 public final class Board {
  public static final int SIZE=6; public static final int[] FLEET={2,3,4,5};

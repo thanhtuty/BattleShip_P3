@@ -1,5 +1,6 @@
-package battleship.part3;
+package battleship.part3.client;
 
+import battleship.part3.server.Board;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -9,9 +10,6 @@ import java.awt.GridLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -57,8 +55,7 @@ public final class Client extends JFrame {
     private boolean horizontal = true;
     private boolean ready;
     private boolean opponentConnected;
-    private DataInputStream in;
-    private DataOutputStream out;
+    private GameClient gameClient;
     private int player = -1;
     private String username = "";
     private String mode = "SETUP";
@@ -256,15 +253,13 @@ public final class Client extends JFrame {
             return;
         }
         try {
-            Socket socket = new Socket(host.trim(),
+            gameClient = new GameClient(host.trim(),
                     Integer.parseInt(System.getProperty("port", "5002")));
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
 
             Thread reader = new Thread(() -> {
                 try {
                     while (true) {
-                        String message = in.readUTF();
+                        String message = gameClient.receive();
                         SwingUtilities.invokeLater(() -> handle(message));
                     }
                 } catch (Exception e) {
@@ -358,8 +353,7 @@ public final class Client extends JFrame {
 
     private void send(String message) {
         try {
-            out.writeUTF(message);
-            out.flush();
+            gameClient.send(message);
         } catch (Exception e) {
             status.setText("Không gửi được dữ liệu tới Server");
             statusDot.setForeground(RED);

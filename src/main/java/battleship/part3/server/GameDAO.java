@@ -1,4 +1,4 @@
-package battleship.part3;
+package battleship.part3.server;
 import java.sql.*;
 public final class GameDAO {
  private final DbConfig db; public GameDAO(DbConfig db){this.db=db;}

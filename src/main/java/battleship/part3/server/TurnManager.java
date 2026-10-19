@@ -1,4 +1,4 @@
-package battleship.part3;
+package battleship.part3.server;
 public final class TurnManager {
  private int current; private long deadline;
  public TurnManager(int first){current=first;reset();} public int current(){return current;} public int secondsLeft(){return (int)Math.max(0,(deadline-System.currentTimeMillis()+999)/1000);}
