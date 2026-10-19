@@ -9,7 +9,7 @@ Project tách riêng phần game: bàn 6×6, 4 tàu dài 2/3/4/5, đặt ngang/d
 2. Mở `database/01_create_database.sql` trong SSMS, chạy toàn bộ script. Script tạo cả bảng `UserAccounts`. Có thể chạy lại script để bổ sung bảng này vào database đã tạo trước đó. Có thể thay `sa` bằng SQL Login riêng có quyền trên `BattleShipPart3`.
 3. Trong NetBeans chọn **File > Open Project**, trỏ tới thư mục có `pom.xml`; chờ Maven tải driver JDBC.
 4. Chạy `setup-config.bat`, sửa `db.username`/`db.password`, Ctrl+S. `config/db.properties` bị Git ignore; không commit mật khẩu.
-5. Run `battleship.part3.Server` một lần. Server tự tạo hai tài khoản mẫu nếu chưa có: `player1` / `12345678` và `player2` / `12345678`.
+5. Run `battleship.part3.Server` một lần. Server tự tạo hai tài khoản mẫu nếu chưa có: `abc1` / `abc12345` và `abc2` / `abc12345`.
 6. Run `battleship.part3.Client` hai lần. Chọn đăng nhập bằng tài khoản mẫu hoặc tạo tài khoản mới. Cùng máy nhập `127.0.0.1`; hai máy nhập IP LAN của máy chạy server. Mở TCP port 5002 trên firewall server.
 7. Mỗi người đặt lần lượt tàu 2, 3, 4, 5 ô: nhấn Đổi hướng để đổi ngang/dọc rồi bấm ô bắt đầu từng tàu. Khi đủ 4 tàu, chọn Yes để Ready. Đánh dấu `■` là tàu của bạn, `×` là ô trúng, `·` là ô trượt.
 
