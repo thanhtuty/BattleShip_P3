@@ -29,17 +29,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class Client extends JFrame {
-    private static final Color BG = new Color(7, 17, 31);
-    private static final Color PANEL = new Color(13, 29, 47);
-    private static final Color PANEL_LIGHT = new Color(18, 39, 61);
-    private static final Color LINE = new Color(35, 61, 82);
-    private static final Color TEXT = new Color(230, 241, 249);
-    private static final Color MUTED = new Color(143, 165, 183);
-    private static final Color TEAL = new Color(37, 211, 190);
-    private static final Color RED = new Color(255, 104, 105);
-    private static final Color WATER = new Color(17, 41, 62);
-    private static final Color SHIP = new Color(35, 105, 139);
-    private static final Color MISS = new Color(37, 59, 76);
+    private static final Color BG = new Color(245, 248, 252);
+    private static final Color PANEL = new Color(255, 255, 255);
+    private static final Color PANEL_LIGHT = new Color(225, 236, 246);
+    private static final Color LINE = new Color(75, 97, 119);
+    private static final Color TEXT = new Color(17, 35, 54);
+    private static final Color MUTED = new Color(52, 69, 87);
+    private static final Color TEAL = new Color(0, 105, 95);
+    private static final Color RED = new Color(176, 32, 38);
+    private static final Color WATER = new Color(214, 233, 246);
+    private static final Color SHIP = new Color(31, 77, 112);
+    private static final Color MISS = new Color(255, 210, 90);
 
     private final JButton[][] own = new JButton[6][6];
     private final JButton[][] enemy = new JButton[6][6];
@@ -51,6 +51,7 @@ public final class Client extends JFrame {
     private final List<String> placements = new ArrayList<>();
     private JButton directionButton;
     private JButton readyButton;
+    private JButton inviteButton;
 
     private boolean horizontal = true;
     private boolean ready;
@@ -70,8 +71,8 @@ public final class Client extends JFrame {
     Client() {
         super("BATTLESHIP  /  Naval Arena");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1040, 760));
-        setSize(1160, 820);
+        setMinimumSize(new Dimension(1120, 760));
+        setSize(1380, 900);
         setLocationRelativeTo(null);
         getContentPane().setBackground(BG);
 
@@ -111,17 +112,21 @@ public final class Client extends JFrame {
         statusCard.add(status, BorderLayout.CENTER);
         right.add(statusCard, BorderLayout.CENTER);
 
-        JPanel controls = new JPanel(new GridLayout(1, 2, 8, 0));
+        JPanel controls = new JPanel(new GridLayout(1, 3, 8, 0));
         controls.setOpaque(false);
         directionButton = styledButton("↔  NGANG", PANEL_LIGHT, TEXT);
         directionButton.addActionListener(e -> {
             horizontal = !horizontal;
             directionButton.setText(horizontal ? "↔  NGANG" : "↕  DỌC");
         });
-        readyButton = styledButton("SẴN SÀNG", TEAL, BG);
+        inviteButton = styledButton("MỜI ĐẤU", new Color(25, 91, 160), Color.WHITE);
+        inviteButton.setEnabled(false);
+        inviteButton.addActionListener(e -> send("INVITE"));
+        readyButton = styledButton("SẴN SÀNG", TEAL, Color.WHITE);
         readyButton.setFont(new Font("SansSerif", Font.BOLD, 12));
         readyButton.setEnabled(false);
         readyButton.addActionListener(e -> ready());
+        controls.add(inviteButton);
         controls.add(directionButton);
         controls.add(readyButton);
         right.add(controls, BorderLayout.EAST);
@@ -179,7 +184,7 @@ public final class Client extends JFrame {
             for (int c = 0; c < 6; c++) {
                 final int row = r, col = c;
                 JButton cell = new JButton("");
-                cell.setPreferredSize(new Dimension(60, 56));
+                cell.setPreferredSize(new Dimension(70, 64));
                 cell.setFont(new Font("SansSerif", Font.BOLD, 19));
                 cell.setForeground(TEXT);
                 cell.setBackground(WATER);
@@ -361,6 +366,7 @@ public final class Client extends JFrame {
             case "WELCOME" -> player = Integer.parseInt(x[1]);
             case "AUTH_OK" -> {
                 player = Integer.parseInt(x[1]);
+                inviteButton.setEnabled(false);
                 status.setText("Đã đăng nhập: " + x[2]);
                 log.append("Đã đăng nhập với tài khoản " + x[2] + ".\n");
             }
@@ -369,8 +375,27 @@ public final class Client extends JFrame {
                 requestAuth();
             }
             case "WAIT" -> status.setText(x[1]);
-            case "INFO" -> {
+            case "LOBBY" -> {
+                opponentConnected = false;
+                inviteButton.setEnabled(true);
+                status.setText(x[1]);
+                alert(x[1]);
+            }
+            case "INVITE_SENT", "INVITE_REJECTED", "INVITE_EXPIRED" -> alert(x[1]);
+            case "INVITE_IN" -> {
+                int answer = JOptionPane.showConfirmDialog(this,
+                        x[1] + " mời bạn thi đấu. Bạn có đồng ý không?",
+                        "Lời mời thi đấu", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                send("ANSWER|" + x[1] + "|" + (answer == JOptionPane.YES_OPTION ? "YES" : "NO"));
+            }
+            case "MATCH" -> {
                 opponentConnected = true;
+                inviteButton.setEnabled(false);
+                statusDot.setForeground(TEAL);
+                alert("Lời mời được chấp nhận. Trận với " + (x.length > 2 ? x[2] : x[1])
+                        + " đã tạo. Hai người hãy đặt tàu và nhấn SẴN SÀNG.");
+            }
+            case "INFO" -> {
                 statusDot.setForeground(TEAL);
                 alert(x[1]);
             }
