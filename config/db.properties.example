@@ -1,0 +1,4 @@
+# Sao chep file nay thanh config/db.properties, sua user/password theo SQL Server local.
+db.url=jdbc:sqlserver://localhost:1433;databaseName=BattleShipPart3;encrypt=true;trustServerCertificate=true
+db.username=sa
+db.password=YourStrongPassword

@@ -1,0 +1,3 @@
+target/
+config/db.properties
+nbproject/private/
