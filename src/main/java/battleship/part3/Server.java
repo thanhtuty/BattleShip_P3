@@ -150,6 +150,10 @@ public final class Server {
                 broadcast("MATCH|" + inviter.name + "|" + player.name);
                 state();
             }
+            case "HISTORY" -> {
+                if (!player.authenticated) throw new IllegalStateException("Hãy đăng nhập để xem lịch sử.");
+                player.send("HISTORY|" + dao.history(player.name));
+            }
             case "PLACE" -> {
                 if (matchId == 0) throw new IllegalStateException("Đang chờ đối thủ kết nối");
                 if (player.ready) throw new IllegalStateException("Bạn đã Ready rồi");
