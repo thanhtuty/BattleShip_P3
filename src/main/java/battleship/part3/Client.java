@@ -52,6 +52,7 @@ public final class Client extends JFrame {
     private JButton directionButton;
     private JButton readyButton;
     private JButton inviteButton;
+    private JButton historyButton;
 
     private boolean horizontal = true;
     private boolean ready;
@@ -113,7 +114,7 @@ public final class Client extends JFrame {
         statusCard.add(status, BorderLayout.CENTER);
         right.add(statusCard, BorderLayout.CENTER);
 
-        JPanel controls = new JPanel(new GridLayout(1, 3, 8, 0));
+        JPanel controls = new JPanel(new GridLayout(1, 4, 8, 0));
         controls.setOpaque(false);
         directionButton = styledButton("↔  NGANG", PANEL_LIGHT, TEXT);
         directionButton.addActionListener(e -> {
@@ -123,11 +124,15 @@ public final class Client extends JFrame {
         inviteButton = styledButton("MỜI ĐẤU", new Color(25, 91, 160), Color.WHITE);
         inviteButton.setEnabled(false);
         inviteButton.addActionListener(e -> send("INVITE"));
+        historyButton = styledButton("LỊCH SỬ", PANEL_LIGHT, TEXT);
+        historyButton.setEnabled(false);
+        historyButton.addActionListener(e -> send("HISTORY"));
         readyButton = styledButton("SẴN SÀNG", TEAL, Color.WHITE);
         readyButton.setFont(new Font("SansSerif", Font.BOLD, 12));
         readyButton.setEnabled(false);
         readyButton.addActionListener(e -> ready());
         controls.add(inviteButton);
+        controls.add(historyButton);
         controls.add(directionButton);
         controls.add(readyButton);
         right.add(controls, BorderLayout.EAST);
@@ -369,6 +374,7 @@ public final class Client extends JFrame {
                 player = Integer.parseInt(x[1]);
                 inviteButton.setEnabled(false);
                 username = x[2];
+                historyButton.setEnabled(true);
                 status.setText("Đã đăng nhập: " + x[2]);
                 log.append("Đã đăng nhập với tài khoản " + x[2] + ".\n");
             }
@@ -403,6 +409,15 @@ public final class Client extends JFrame {
                 alert(x[1]);
             }
             case "START", "TIME" -> alert(x[1]);
+            case "HISTORY" -> {
+                JTextArea history = new JTextArea(x.length > 1 ? x[1] : "", 24, 72);
+                history.setEditable(false);
+                history.setFont(new Font("Monospaced", Font.BOLD, 13));
+                history.setForeground(TEXT);
+                history.setBackground(PANEL);
+                JOptionPane.showMessageDialog(this, new JScrollPane(history),
+                        "Lịch sử trận đấu", JOptionPane.INFORMATION_MESSAGE);
+            }
             case "PLACE_OK" -> log.append("Server xác nhận đặt tàu "
                     + x[1] + "/4.\n");
             case "TURN" -> {
