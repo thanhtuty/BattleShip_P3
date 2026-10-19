@@ -50,7 +50,14 @@ public final class Server {
                 try {
                     Thread.sleep(1000);
                     synchronized (this) {
-                        if (pendingInviteFrom != null && System.currentTimeMillis() >= inviteDeadline) {\n                            Player inviter = pendingInviteFrom;\n                            Player invited = players[1 - inviter.id];\n                            pendingInviteFrom = null;\n                            if (inviter != null) inviter.send("INVITE_EXPIRED|Lời mời đã hết hạn.");\n                            if (invited != null) invited.send("INVITE_EXPIRED|Lời mời đã hết hạn.");\n                        }\n                        if (playing && !finished && turn.expired()) {
+                        if (pendingInviteFrom != null && System.currentTimeMillis() >= inviteDeadline) {
+                            Player inviter = pendingInviteFrom;
+                            Player invited = players[1 - inviter.id];
+                            pendingInviteFrom = null;
+                            if (inviter != null) inviter.send("INVITE_EXPIRED|Lời mời đã hết hạn.");
+                            if (invited != null) invited.send("INVITE_EXPIRED|Lời mời đã hết hạn.");
+                        }
+                        if (playing && !finished && turn.expired()) {
                             int previous = turn.current();
                             turn.miss();
                             try {
