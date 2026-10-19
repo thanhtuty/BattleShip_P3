@@ -11,30 +11,36 @@ public final class GameDAO {
  public void finish(long id,String winner)throws SQLException{try(Connection c=db.connect();PreparedStatement p=c.prepareStatement("UPDATE dbo.Matches SET Status='FINISHED',Winner=?,FinishedAt=SYSUTCDATETIME() WHERE MatchId=?")){p.setString(1,winner);p.setLong(2,id);p.executeUpdate();}}
  public String history(String username)throws SQLException{
   StringBuilder text=new StringBuilder("LỊCH SỬ 10 TRẬN GẦN NHẤT CỦA ").append(username).append("\n\n");
-  try(Connection c=db.connect();PreparedStatement p=c.prepareStatement(
-      "SELECT TOP (10) MatchId,Player1,Player2,Status,Winner,CreatedAt FROM dbo.Matches WHERE Player1=? OR Player2=? ORDER BY MatchId DESC")){
-   p.setString(1,username);p.setString(2,username);
-   try(ResultSet r=p.executeQuery()){
-    boolean found=false;
-    while(r.next()){
-     found=true;long id=r.getLong("MatchId");
-     String other=username.equals(r.getString("Player1"))?r.getString("Player2"):r.getString("Player1");
-     text.append("Trận #").append(id).append(" với ").append(other)
-       .append(" | ").append(r.getString("Status"))
-       .append(" | Thắng: ").append(r.getString("Winner")==null?"chưa có":r.getString("Winner"))
-       .append(" | ").append(r.getTimestamp("CreatedAt")).append("\n");
-     try(PreparedStatement e=c.prepareStatement(
-         "SELECT TOP (40) EventType,Details,CreatedAt FROM dbo.GameEvents WHERE MatchId=? ORDER BY EventId")){
-      e.setLong(1,id);
-      try(ResultSet events=e.executeQuery()){
-       while(events.next())text.append("   • ").append(events.getString("EventType"))
-         .append(": ").append(events.getString("Details")==null?"":events.getString("Details"))
-         .append(" (").append(events.getTimestamp("CreatedAt")).append(")\n");
-      }
+  try(Connection c=db.connect()){
+   java.util.List<Object[]> matches=new java.util.ArrayList<>();
+   try(PreparedStatement p=c.prepareStatement(
+       "SELECT TOP (10) MatchId,Player1,Player2,Status,Winner,CreatedAt FROM dbo.Matches WHERE Player1=? OR Player2=? ORDER BY MatchId DESC")){
+    p.setString(1,username);p.setString(2,username);
+    try(ResultSet r=p.executeQuery()){
+     while(r.next()){
+      String other=username.equals(r.getString("Player1"))?r.getString("Player2"):r.getString("Player1");
+      matches.add(new Object[]{r.getLong("MatchId"),other,r.getString("Status"),
+          r.getString("Winner"),r.getTimestamp("CreatedAt")});
      }
-     text.append("\n");
     }
-    if(!found)text.append("Bạn chưa có trận đấu nào được lưu.");
+   }
+   if(matches.isEmpty())return text.append("Bạn chưa có trận đấu nào được lưu.").toString();
+   for(Object[] match:matches){
+    long id=(Long)match[0];
+    text.append("Trận #").append(id).append(" với ").append(match[1])
+      .append(" | ").append(match[2])
+      .append(" | Thắng: ").append(match[3]==null?"chưa có":match[3])
+      .append(" | ").append(match[4]).append("\n");
+    try(PreparedStatement e=c.prepareStatement(
+        "SELECT TOP (40) EventType,Details,CreatedAt FROM dbo.GameEvents WHERE MatchId=? ORDER BY EventId")){
+     e.setLong(1,id);
+     try(ResultSet events=e.executeQuery()){
+      while(events.next())text.append("   • ").append(events.getString("EventType"))
+        .append(": ").append(events.getString("Details")==null?"":events.getString("Details"))
+        .append(" (").append(events.getTimestamp("CreatedAt")).append(")\n");
+     }
+    }
+    text.append("\n");
    }
   }
   return text.toString();
